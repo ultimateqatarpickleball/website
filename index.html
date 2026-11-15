@@ -304,13 +304,19 @@ document.getElementById('memberForm').addEventListener('submit',async e=>{
  try{
   const response=await fetch('https://formsubmit.co/ajax/ultimateqatarpickleball@gmail.com',{
    method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},
-   body:JSON.stringify({...data,_subject:'New Qatar Ultimate membership application',_template:'table'})
+   body:JSON.stringify({...data,_subject:'New Qatar Ultimate membership application',_template:'table',_url:'https://ultimateqatarpickleball.github.io/website/'})
   });
   const result=await response.json();
-  if(!response.ok||result.success===false)throw new Error(result.message||'Email service rejected the submission');
+  // FormSubmit may return HTTP 200 with success as the STRING "false".
+  // Only show the thank-you/Reclub panel when the service explicitly confirms success.
+  if(!response.ok || String(result.success).toLowerCase() !== 'true') {
+   throw new Error(result.message || 'Email service did not confirm delivery. Please try again.');
+  }
   form.reset();form.style.display='none';success.style.display='block';
  }catch(err){
-  console.error('Membership email failed:',err);error.style.display='block';
+  console.error('Membership email failed:',err);
+  error.innerHTML='Sorry, your enquiry could not be confirmed as sent. Please try again or email <a href="mailto:ultimateqatarpickleball@gmail.com">ultimateqatarpickleball@gmail.com</a>. ' + (err && err.message ? '<span class="help">Details: '+String(err.message).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))+'</span>' : '');
+  error.style.display='block';
  }finally{button.disabled=false;button.textContent='Submit membership interest →';}
 });
 document.getElementById('matchForm').addEventListener('submit',e=>{e.preventDefault();const matches=get('matches');matches.push({...Object.fromEntries(new FormData(e.target)),created:new Date().toISOString()});set('matches',matches);e.target.reset();renderAdmin();alert('Match result saved in this browser demo.')});
